@@ -1,6 +1,6 @@
 'use strict';
 var path = require('path');
-var eachAsync = require('each-async');
+var async = require('async');
 var chalk = require('chalk');
 var JSFtp = require('jsftp');
 
@@ -11,15 +11,16 @@ module.exports = function (grunt) {
 		var done = this.async();
 		var options = this.options();
 		var fileCount = 0;
+		var threads = 4;
 
 		if (options.host === undefined) {
 			throw new Error('`host` required.');
 		}
 
-		eachAsync(this.files, function (el, i, next) {
+		async.eachLimit(this.files, threads,function (el,next) {
 			// have to create a new connection for each file otherwise they conflict
 			var ftp = new JSFtp(options);
-			var finalRemotePath = path.join('/', el.dest, el.src[0]);
+			var finalRemotePath = el.dest;
 
 			ftp.mkdirp(path.dirname(finalRemotePath), function (err) {
 				if (err) {
